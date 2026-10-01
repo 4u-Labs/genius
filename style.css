@@ -196,14 +196,17 @@ html, body {
     pointer-events: none;
 }
 
-/* Parafusos metálicos decorativos */
+/* Parafusos metálicos decorativos originais */
 .screw {
     position: absolute;
     width: 12px;
     height: 12px;
     background: linear-gradient(145deg, #555 0%, #222 50%, #444 100%);
     border-radius: 50%;
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3), 0 2px 4px rgba(0, 0, 0, 0.6);
+    box-shadow:
+        inset 0 1px 2px rgba(255, 255, 255, 0.3),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.5),
+        0 2px 4px rgba(0, 0, 0, 0.5);
     z-index: 15;
     pointer-events: none;
 }
@@ -216,14 +219,14 @@ html, body {
     transform: translate(-50%, -50%);
     width: 8px;
     height: 2px;
-    background: #111;
+    background: linear-gradient(90deg, #111 0%, #333 50%, #111 100%);
     border-radius: 1px;
 }
 
-.screw.top { top: 2.5%; left: 50%; transform: translateX(-50%); }
-.screw.bottom { bottom: 2.5%; left: 50%; transform: translateX(-50%); }
-.screw.left { left: 2.5%; top: 50%; transform: translateY(-50%); }
-.screw.right { right: 2.5%; top: 50%; transform: translateY(-50%); }
+.screw.top { top: 3%; left: 50%; transform: translateX(-50%); }
+.screw.bottom { bottom: 3%; left: 50%; transform: translateX(-50%); }
+.screw.left { left: 3%; top: 50%; transform: translateY(-50%); }
+.screw.right { right: 3%; top: 50%; transform: translateY(-50%); }
 
 /* QUADRANTES COLORIDOS */
 .quadrant {
@@ -254,15 +257,6 @@ html, body {
     pointer-events: none;
 }
 
-.key-hint {
-    font-family: var(--font-retro);
-    font-size: 0.65rem;
-    color: rgba(255, 255, 255, 0.3);
-    pointer-events: none;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-    position: absolute;
-}
-
 /* Verde - Superior Esquerdo */
 #topleft {
     top: 0;
@@ -271,7 +265,6 @@ html, body {
     background: radial-gradient(ellipse at 70% 70%, #1a5c1a 0%, #0d3d0d 40%, #052805 80%, #021502 100%);
     box-shadow: inset 3px 3px 10px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 50, 0, 0.5);
 }
-#topleft .key-hint { top: 35%; left: 35%; }
 
 #topleft.lit {
     background: radial-gradient(ellipse at 70% 70%, #4eff4e 0%, #2eb82e 40%, #1a8c1a 80%, #0a5c0a 100%);
@@ -286,7 +279,6 @@ html, body {
     background: radial-gradient(ellipse at 30% 70%, #8b1a1a 0%, #5c0d0d 40%, #3d0505 80%, #1f0202 100%);
     box-shadow: inset 3px 3px 10px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(50, 0, 0, 0.5);
 }
-#topright .key-hint { top: 35%; right: 35%; }
 
 #topright.lit {
     background: radial-gradient(ellipse at 30% 70%, #ff4e4e 0%, #cc2e2e 40%, #991a1a 80%, #660a0a 100%);
@@ -301,7 +293,6 @@ html, body {
     background: radial-gradient(ellipse at 70% 30%, #b8860b 0%, #8b6508 40%, #5c4205 80%, #2f2102 100%);
     box-shadow: inset 3px 3px 10px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(50, 40, 0, 0.5);
 }
-#bottomleft .key-hint { bottom: 35%; left: 35%; }
 
 #bottomleft.lit {
     background: radial-gradient(ellipse at 70% 30%, #ffd700 0%, #e6c200 40%, #b8980a 80%, #8b7308 100%);
@@ -316,7 +307,6 @@ html, body {
     background: radial-gradient(ellipse at 30% 30%, #1a1a5c 0%, #0d0d3d 40%, #050528 80%, #020215 100%);
     box-shadow: inset 3px 3px 10px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 50, 0.5);
 }
-#bottomright .key-hint { bottom: 35%; right: 35%; }
 
 #bottomright.lit {
     background: radial-gradient(ellipse at 30% 30%, #4e4eff 0%, #2e2ecc 40%, #1a1a99 80%, #0a0a66 100%);
@@ -338,6 +328,7 @@ html, body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    box-sizing: border-box;
     box-shadow:
         inset 4px 4px 15px rgba(0, 0, 0, 0.9),
         inset -2px -2px 10px rgba(255, 255, 255, 0.08),
@@ -348,37 +339,51 @@ html, body {
     align-items: center;
     justify-content: center;
     padding: 10px;
+    pointer-events: auto;
 }
 
-#title {
+#inner-circle::before {
+    content: '';
     position: absolute;
-    top: 18px;
-    width: 100%;
-    text-align: center;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 40%);
     pointer-events: none;
 }
 
-.brand-sub {
-    font-size: 8px;
-    color: #999;
-    letter-spacing: 2px;
-    margin-bottom: 2px;
-}
-
-.genius-logo {
+/* Título clássico (sem 4u.ia.br no centro do brinquedo) */
+#title {
     font-family: var(--font-retro);
-    font-size: 18px;
-    color: #ffffff;
-    text-shadow:
-        0 0 2px rgba(255, 255, 255, 0.8),
-        1px 1px 0px #888,
-        2px 2px 3px rgba(0, 0, 0, 0.9);
-    letter-spacing: 2px;
+    position: absolute;
+    top: 26px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    line-height: 1.3;
+    pointer-events: none;
+    z-index: 4;
 }
 
+.genius-title {
+    font-family: var(--font-retro);
+    font-size: 20px;
+    color: #f5f5f5;
+    text-shadow:
+        0 0 2px rgba(255, 255, 255, 0.5),
+        1px 1px 0px #bbb,
+        2px 2px 0px #999,
+        3px 3px 0px #777,
+        4px 4px 5px rgba(0, 0, 0, 0.8);
+    letter-spacing: 3px;
+}
+
+/* Chaves Centrais: Power e Start */
 #switches {
     position: relative;
-    margin-top: 25px;
+    margin-top: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -403,8 +408,8 @@ html, body {
 }
 
 .toggle-button {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: linear-gradient(145deg, #4a1a1a 0%, #200808 60%, #301010 100%);
     border: 3px solid #140505;
@@ -433,9 +438,9 @@ html, body {
     box-shadow: 0 0 8px #4eff4e;
 }
 
-.retro-btn-start {
-    height: 32px;
-    width: 72px;
+.button#start {
+    height: 34px;
+    width: 74px;
     border-radius: 5px;
     font-family: Arial, sans-serif;
     font-size: 9px;
@@ -447,96 +452,58 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-transform: uppercase;
     cursor: pointer;
     transition: all 0.1s ease;
     touch-action: manipulation;
 }
 
-.retro-btn-start:active {
+.button#start:active {
     transform: translateY(2px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
-.retro-btn-start.disabled {
+.button#start.disabled {
     opacity: 0.4;
     cursor: not-allowed;
     pointer-events: none;
 }
 
-/* SELETORES DE MODO E SKILL */
-.game-modes-bar {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    z-index: 25;
-}
-
-.mode-badge {
-    background: #111;
-    border: 1px solid #333;
-    border-radius: 4px;
-    padding: 3px 6px;
-    font-family: Arial, sans-serif;
-    font-size: 8px;
-    font-weight: bold;
-    color: #aaa;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    touch-action: manipulation;
-}
-
-.mode-badge:hover {
-    border-color: var(--neon-yellow);
-    color: #fff;
-}
-
-.mode-badge span {
-    color: var(--neon-yellow);
-}
-
-/* DISPLAY DIGITAL LED */
+/* DISPLAY DIGITAL LED (Totalmente Desobstruído e Livre) */
 #turn {
     position: absolute;
-    bottom: 22px;
+    bottom: 18px;
     left: 50%;
     transform: translateX(-50%);
-    background: #080000;
+    background: linear-gradient(180deg, #1a0000 0%, #0a0000 50%, #150000 100%);
     color: #ff2222;
     font-family: var(--font-retro);
     font-size: 11px;
-    height: 24px;
+    height: 26px;
     width: 58px;
     text-align: center;
-    line-height: 24px;
+    line-height: 26px;
     border-radius: 4px;
     border: 2px solid #1a0000;
     box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9), 0 0 8px rgba(255, 0, 0, 0.3);
     letter-spacing: 2px;
     pointer-events: none;
+    z-index: 25;
 }
 
 #turn.off {
     color: #330000;
-    box-shadow: none;
-}
-
-#manufacturer-label {
-    position: absolute;
-    bottom: 8px;
-    font-size: 6px;
-    color: #555;
-    letter-spacing: 1px;
-    pointer-events: none;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9);
 }
 
 /* =========================================
-   PLACAR LATERAL (RECORDES)
+   PLACAR LATERAL (MODOS, RECORDES E LEGENDA)
    ========================================= */
 #scoreboard-card {
     background: rgba(12, 16, 28, 0.95);
     border: 2px solid rgba(0, 255, 102, 0.4);
     border-radius: 12px;
-    padding: 16px 20px;
+    padding: 14px 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 255, 102, 0.15);
     font-family: var(--font-retro);
     color: var(--neon-green);
@@ -544,24 +511,58 @@ html, body {
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+}
+
+/* Modos de jogo fora do disco central para não cobrir o visor */
+.modes-panel {
+    display: flex;
+    gap: 6px;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.mode-badge {
+    flex: 1;
+    background: #0f1322;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 6px 4px;
+    font-family: var(--font-retro);
+    font-size: 7px;
+    color: #aaa;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    touch-action: manipulation;
+    text-align: center;
+}
+
+.mode-badge:hover {
+    border-color: var(--neon-yellow);
+    color: #fff;
+    box-shadow: 0 0 8px rgba(255, 221, 0, 0.3);
+}
+
+.mode-badge span {
+    color: var(--neon-yellow);
 }
 
 #scoreboard-card h2 {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-align: center;
     color: var(--neon-yellow);
     letter-spacing: 2px;
     border-bottom: 1px solid rgba(255, 221, 0, 0.3);
-    padding-bottom: 8px;
+    padding-bottom: 6px;
+    margin: 0;
 }
 
 #scoreboard-card ol {
     list-style: none;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 #scoreboard-card li {
@@ -577,16 +578,23 @@ html, body {
     font-weight: bold;
 }
 
+.score-row-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
 .score-actions {
     display: flex;
     justify-content: center;
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .btn-action {
     width: 100%;
     font-size: 0.6rem;
-    padding: 8px;
+    padding: 7px;
     background: rgba(0, 170, 255, 0.15);
     border-color: var(--neon-blue);
     color: var(--neon-blue);
@@ -610,6 +618,64 @@ html, body {
     20% { opacity: 1; }
     80% { opacity: 1; }
     100% { opacity: 0; }
+}
+
+/* Legenda de teclas do teclado embaixo do placar */
+.keyboard-legend {
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: var(--font-retro);
+    font-size: 7px;
+}
+
+.legend-header {
+    color: #aaa;
+    font-size: 6.5px;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.legend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.leg-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 5px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    font-size: 6.5px;
+    border-left: 3px solid transparent;
+}
+
+.leg-sym {
+    font-size: 8px;
+}
+
+.leg-green {
+    border-left-color: #00ff66;
+    color: #7affaa;
+}
+
+.leg-red {
+    border-left-color: #ff3344;
+    color: #ff858f;
+}
+
+.leg-yellow {
+    border-left-color: #ffdd00;
+    color: #fff07a;
+}
+
+.leg-blue {
+    border-left-color: #00aaff;
+    color: #7adcff;
 }
 
 /* =========================================
@@ -779,19 +845,19 @@ html, body {
         justify-content: center;
     }
 
-    /* Disco dimensionado proporcionalmente à altura da tela */
+    /* Disco dimensionado proporcionalmente à altura da tela (100dvh) */
     #outer-circle {
-        width: min(85vw, 44dvh);
-        height: min(85vw, 44dvh);
-        border-width: 8px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        width: min(84vw, 42dvh);
+        height: min(84vw, 42dvh);
+        border-width: 7px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.85);
     }
 
     #outer-circle::before {
-        top: -12px;
-        left: -12px;
-        right: -12px;
-        bottom: -12px;
+        top: -10px;
+        left: -10px;
+        right: -10px;
+        bottom: -10px;
     }
 
     .screw {
@@ -799,21 +865,31 @@ html, body {
         height: 8px;
     }
 
-    .genius-logo {
-        font-size: 14px;
+    .screw::before {
+        width: 5px;
+        height: 1.5px;
     }
 
-    .brand-sub {
-        font-size: 6px;
+    #inner-circle {
+        border-width: 5px;
     }
 
     #title {
         top: 10px;
     }
 
+    .genius-title {
+        font-size: 14px;
+        letter-spacing: 2px;
+    }
+
     #switches {
-        margin-top: 14px;
+        margin-top: 10px;
         gap: 10px;
+    }
+
+    .switch-label {
+        font-size: 7px;
     }
 
     .toggle-button {
@@ -821,43 +897,29 @@ html, body {
         height: 26px;
     }
 
-    .retro-btn-start {
-        width: 60px;
+    .button#start {
+        width: 58px;
         height: 26px;
         font-size: 8px;
     }
 
-    .game-modes-bar {
-        margin-top: 6px;
-        gap: 4px;
-    }
-
-    .mode-badge {
-        font-size: 7px;
-        padding: 2px 4px;
-    }
-
+    /* Visor LED no mobile — livre e sem nenhuma sobreposição */
     #turn {
-        bottom: 12px;
+        bottom: 8px;
         height: 20px;
-        width: 48px;
+        width: 46px;
         font-size: 9px;
         line-height: 20px;
     }
 
-    #manufacturer-label {
-        display: none;
-    }
-
-    /* Placar compacto em barra horizontal no celular */
+    /* Placar compacto em duas linhas horizontais no celular */
     #scoreboard-card {
         width: 100%;
         max-width: min(88vw, 360px);
-        padding: 8px 12px;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
+        padding: 6px 10px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
         flex-shrink: 0;
     }
 
@@ -865,9 +927,25 @@ html, body {
         display: none;
     }
 
+    .modes-panel {
+        gap: 4px;
+    }
+
+    .mode-badge {
+        font-size: 6.5px;
+        padding: 4px 2px;
+    }
+
+    .score-row-mobile {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
     #scoreboard-card ol {
         flex-direction: row;
-        gap: 8px;
+        gap: 6px;
         font-size: 0.6rem;
     }
 

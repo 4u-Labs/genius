@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@600;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
 
     <!-- CSS -->
-    <link href="style.css?v=2.0.0" rel="stylesheet"/>
+    <link href="style.css?v=2.0.1" rel="stylesheet"/>
 </head>
 <body>
     <div class="genius-app-container">
@@ -41,85 +41,84 @@
             <!-- Aparelho Físico Genius 3D -->
             <div id="game-wrapper">
                 <div id="outer-circle">
-                    <!-- Parafusos decorativos -->
+                    <!-- Parafusos decorativos originais -->
                     <div class="screw top"></div>
                     <div class="screw bottom"></div>
                     <div class="screw left"></div>
                     <div class="screw right"></div>
 
-                    <!-- 4 Botões / Quadrantes Coloridos -->
-                    <div class="quadrant" id="topleft" data-color="green" aria-label="Verde (Cima ou 1)" role="button" tabindex="0">
-                        <span class="key-hint desktop-only">W / ▲</span>
-                    </div>
-                    <div class="quadrant" id="topright" data-color="red" aria-label="Vermelho (Direita ou 2)" role="button" tabindex="0">
-                        <span class="key-hint desktop-only">D / ▶</span>
-                    </div>
-                    <div class="quadrant" id="bottomleft" data-color="yellow" aria-label="Amarelo (Esquerda ou 3)" role="button" tabindex="0">
-                        <span class="key-hint desktop-only">A / ◀</span>
-                    </div>
-                    <div class="quadrant" id="bottomright" data-color="blue" aria-label="Azul (Baixo ou 4)" role="button" tabindex="0">
-                        <span class="key-hint desktop-only">S / ▼</span>
-                    </div>
+                    <!-- 4 Botões / Quadrantes Coloridos Limpos (sem letras feias em cima) -->
+                    <div class="quadrant" id="topleft" data-color="green" aria-label="Verde" role="button" tabindex="0"></div>
+                    <div class="quadrant" id="topright" data-color="red" aria-label="Vermelho" role="button" tabindex="0"></div>
+                    <div class="quadrant" id="bottomleft" data-color="yellow" aria-label="Amarelo" role="button" tabindex="0"></div>
+                    <div class="quadrant" id="bottomright" data-color="blue" aria-label="Azul" role="button" tabindex="0"></div>
 
-                    <!-- Núcleo Central de Controles -->
+                    <!-- Núcleo Central de Controles Limpo (Sem 4U.IA.BR e Sem Obstrução do Visor) -->
                     <div id="inner-circle">
-                        <!-- Título do Aparelho -->
+                        <!-- Título do Aparelho (Apenas GENIUS clássico) -->
                         <div id="title">
-                            <div class="brand-sub">[ 4U.IA.BR ]</div>
-                            <div class="genius-logo">GENIUS</div>
+                            <div class="genius-title">GENIUS</div>
                         </div>
 
-                        <!-- Chaves e Botões Centrais -->
+                        <!-- Chaves Centrais: Power e Start -->
                         <div id="switches">
-                            <!-- Chave Power -->
-                            <div class="switch-box">
+                            <label class="switch-box">
                                 <div class="toggle-button" id="on" role="button" tabindex="0" aria-label="Power Ligar/Desligar"></div>
                                 <span class="switch-label">POWER</span>
-                            </div>
+                            </label>
 
-                            <!-- Botão Start -->
                             <div class="switch-box">
-                                <button class="retro-btn-start disabled" id="start" aria-label="Iniciar Jogo">START</button>
+                                <button class="button disabled" id="start" aria-label="Start">Start</button>
                                 <span class="switch-label">INICIAR</span>
                             </div>
                         </div>
 
-                        <!-- Seletores de Modo e Velocidade (Estrela Original) -->
-                        <div class="game-modes-bar">
-                            <button class="mode-badge" id="btn-mode" title="Alternar Modo de Jogo">
-                                MODO: <span id="mode-text">CLÁSSICO</span>
-                            </button>
-                            <button class="mode-badge" id="btn-skill" title="Alternar Nível de Velocidade">
-                                SKILL: <span id="skill-text">1</span>
-                            </button>
-                        </div>
-
-                        <!-- Visor Digital LED de Rodadas -->
+                        <!-- Visor Digital LED Totalmente Livre e Desobstruído -->
                         <div id="turn" class="off">--</div>
-
-                        <!-- Selo de Fabricante -->
-                        <div id="manufacturer-label">RETRO ARCADE 1978</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Painel de Placar & Recordes -->
+            <!-- Painel Lateral: Modos, Recordes e Legenda de Teclas Embaixo -->
             <aside id="scoreboard-card">
-                <h2>RECORDES</h2>
-                <ol id="score-list">
-                    <li>#1: --</li>
-                    <li>#2: --</li>
-                    <li>#3: --</li>
-                    <li>#4: --</li>
-                    <li>#5: --</li>
-                </ol>
-
-                <div class="score-actions">
-                    <button id="btn-share" class="btn-retro btn-action" title="Compartilhar meu Recorde">
-                        📲 COMPARTILHAR
+                <!-- Seletores de Modo e Velocidade (Posicionados Fora do Disco para Não Cobrir o Visor) -->
+                <div class="modes-panel">
+                    <button class="mode-badge" id="btn-mode" title="Alternar Modo de Jogo">
+                        MODO: <span id="mode-text">CLÁSSICO</span>
+                    </button>
+                    <button class="mode-badge" id="btn-skill" title="Alternar Nível de Velocidade">
+                        SKILL: <span id="skill-text">1</span>
                     </button>
                 </div>
+
+                <h2>RECORDES</h2>
+                <div class="score-row-mobile">
+                    <ol id="score-list">
+                        <li>#1: --</li>
+                        <li>#2: --</li>
+                        <li>#3: --</li>
+                        <li>#4: --</li>
+                        <li>#5: --</li>
+                    </ol>
+
+                    <div class="score-actions">
+                        <button id="btn-share" class="btn-retro btn-action" title="Compartilhar meu Recorde">
+                            📲 COMPARTILHAR
+                        </button>
+                    </div>
+                </div>
                 <div id="share-toast" class="share-toast">Link copiado com sucesso!</div>
+
+                <!-- Legenda de Cores / Teclas do PC Embaixo do Placar -->
+                <div class="keyboard-legend desktop-only">
+                    <div class="legend-header">CONTROLES DO TECLADO (PC):</div>
+                    <div class="legend-grid">
+                        <div class="leg-item leg-green"><span class="leg-sym">▲</span> W (VERDE)</div>
+                        <div class="leg-item leg-red"><span class="leg-sym">▶</span> D (VERMELHO)</div>
+                        <div class="leg-item leg-yellow"><span class="leg-sym">◀</span> A (AMARELO)</div>
+                        <div class="leg-item leg-blue"><span class="leg-sym">▼</span> S (AZUL)</div>
+                    </div>
+                </div>
             </aside>
         </main>
 
@@ -174,6 +173,6 @@
     </div>
 
     <!-- Script Principal -->
-    <script src="script.js?v=2.0.0"></script>
+    <script src="script.js?v=2.0.1"></script>
 </body>
 </html>
