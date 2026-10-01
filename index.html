@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Genius [4U.IA.BR]</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Tailwind (requisito do projeto) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- Favicon inline para evitar 404 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23333'/><path d='M50 5 A45 45 0 0 1 95 50 L50 50 Z' fill='%23cc2020'/><path d='M5 50 A45 45 0 0 1 50 5 L50 50 Z' fill='%23228822'/><path d='M50 95 A45 45 0 0 1 5 50 L50 50 Z' fill='%23b8860b'/><path d='M95 50 A45 45 0 0 1 50 95 L50 50 Z' fill='%231a1a8c'/></svg>">
+
+  <!-- Fontes do Google -->
+  <link href="https://fonts.googleapis.com/css?family=Original+Surfer" rel="stylesheet" type="text/css" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(ellipse at center, #4a4a4a 0%, #1a1a1a 60%, #0a0a0a 100%);
+      background-size: cover;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+      perspective: 1000px;
+    }
+
+    /* Textura de fundo */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #game-container {
+      position: relative; /* garante que z-index funcione */
+      z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 30px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    /* Base/sombra do aparelho */
+    #game-wrapper {
+      position: relative;
+      /*
+        IMPORTANTE (compatibilidade):
+        Alguns navegadores (Chrome/Edge/Safari) podem falhar no hit-test quando o container
+        está com rotateX + perspective, deixando partes do disco “não clicáveis”.
+        Por padrão deixamos sem tilt para garantir cliques.
+      */
+      transform: none;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+    }
+
+    /* Firefox lida melhor com hit-testing 3D neste layout */
+    @supports (-moz-appearance: none) {
+      #game-wrapper {
+        transform: rotateX(5deg);
+      }
+    }
+
+    #game-wrapper::before {
+      content: '';
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      height: 40px;
+      background: radial-gradient(ellipse, rgba(0, 0, 0, 0.6) 0%, transparent 70%);
+      filter: blur(15px);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    #outer-circle {
+      background: linear-gradient(145deg, #2a2a2a 0%, #0a0a0a 50%, #1a1a1a 100%);
+      border-radius: 50%;
+      height: 500px;
+      width: 500px;
+      position: relative;
+      border: 12px solid #1a1a1a;
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.8),
+        0 10px 30px rgba(0, 0, 0, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1),
+        inset 0 -5px 15px rgba(0, 0, 0, 0.5);
+      flex-shrink: 0;
+      overflow: visible;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+    }
+
+    /* Borda externa metálica */
+    #outer-circle::before {
+      content: '';
+      position: absolute;
+      top: -18px;
+      left: -18px;
+      right: -18px;
+      bottom: -18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 25%, #1a1a1a 50%, #3a3a3a 75%, #2a2a2a 100%);
+      z-index: -1;
+      box-shadow:
+        inset 0 2px 3px rgba(255, 255, 255, 0.15),
+        inset 0 -2px 3px rgba(0, 0, 0, 0.3),
+        0 5px 20px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
+
+    /* Reflexo de luz no topo */
+    #outer-circle::after {
+      content: '';
+      position: absolute;
+      top: 5%;
+      left: 15%;
+      width: 35%;
+      height: 15%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Parafusos decorativos */
+    .screw {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: linear-gradient(145deg, #555 0%, #222 50%, #444 100%);
+      border-radius: 50%;
+      box-shadow:
+        inset 0 1px 2px rgba(255, 255, 255, 0.3),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.5),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .screw::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 2px;
+      background: linear-gradient(90deg, #111 0%, #333 50%, #111 100%);
+      border-radius: 1px;
+    }
+
+    .screw.top {
+      top: 3%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .screw.bottom {
+      bottom: 3%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .screw.left {
+      left: 3%;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .screw.right {
+      right: 3%;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    #inner-circle {
+      position: absolute;
+      background: linear-gradient(160deg, #5a5a5a 0%, #3a3a3a 30%, #2a2a2a 70%, #1a1a1a 100%);
+      border-radius: 50%;
+      height: 52%;
+      width: 52%;
+      border: 8px solid #0a0a0a;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-sizing: border-box;
+      box-shadow:
+        inset 4px 4px 15px rgba(0, 0, 0, 0.8),
+        inset -2px -2px 10px rgba(255, 255, 255, 0.05),
+        0 5px 20px rgba(0, 0, 0, 0.5),
+        0 0 0 3px rgba(0, 0, 0, 0.3);
+      z-index: 20; /* acima dos quadrantes */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      /* FIX CROSS-BROWSER:
+         Em Chrome/Edge/Safari, pointer-events:none no container impede clique nos filhos.
+         Deixe o círculo interno clicável e desabilite clique apenas em elementos decorativos. */
+      pointer-events: auto;
+    }
+
+    /* Textura no círculo interno */
+    #inner-circle::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    .quadrant {
+      position: absolute;
+      height: 50%;
+      width: 50%;
+      border: 5px solid #0a0a0a;
+      box-sizing: border-box;
+      z-index: 1;
+      overflow: hidden;
+      cursor: pointer;
+      transition: none;
+      touch-action: manipulation;
+    }
+
+    .quadrant::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    /* Reflexo de luz nos quadrantes */
+    .quadrant::after {
+      content: '';
+      position: absolute;
+      top: 5%;
+      left: 10%;
+      width: 40%;
+      height: 20%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* Verde - Superior Esquerdo */
+    #topleft {
+      top: 0;
+      left: 0;
+      border-radius: 100% 0 0 0;
+      background:
+        radial-gradient(ellipse at 70% 70%, #1a5c1a 0%, #0d3d0d 40%, #052805 80%, #021502 100%);
+      box-shadow:
+        inset 3px 3px 10px rgba(0, 0, 0, 0.6),
+        inset -2px -2px 8px rgba(100, 200, 100, 0.1),
+        inset 0 0 20px rgba(0, 50, 0, 0.5);
+    }
+
+    #topleft.lit {
+      background:
+        radial-gradient(ellipse at 70% 70%, #4eff4e 0%, #2eb82e 40%, #1a8c1a 80%, #0a5c0a 100%);
+      box-shadow:
+        inset 3px 3px 10px rgba(0, 0, 0, 0.3),
+        inset -2px -2px 8px rgba(200, 255, 200, 0.3),
+        0 0 40px rgba(0, 255, 0, 0.6),
+        0 0 80px rgba(0, 255, 0, 0.3);
+    }
+
+    /* Vermelho - Superior Direito */
+    #topright {
+      top: 0;
+      left: 50%;
+      border-radius: 0 100% 0 0;
+      background:
+        radial-gradient(ellipse at 30% 70%, #8b1a1a 0%, #5c0d0d 40%, #3d0505 80%, #1f0202 100%);
+      box-shadow:
+        inset 3px 3px 10px rgba(0, 0, 0, 0.6),
+        inset -2px -2px 8px rgba(200, 100, 100, 0.1),
+        inset 0 0 20px rgba(50, 0, 0, 0.5);
+    }
+
+    #topright.lit {
+      background:
+        radial-gradient(ellipse at 30% 70%, #ff4e4e 0%, #cc2e2e 40%, #991a1a 80%, #660a0a 100%);
+      box-shadow:
+        inset 3px 3px 10px rgba(0, 0, 0, 0.3),
+        inset -2px -2px 8px rgba(255, 200, 200, 0.3),
+        0 0 40px rgba(255, 0, 0, 0.6),
+        0 0 80px rgba(255, 0, 0, 0.3);
+    }
+
+    /* Amarelo - Inferior Esquerdo */
+    #bottomleft {
+      top: 50%;
+      left: 0;
+      border-radius: 0 0 0 100%;
+      background:
+        radial-gradient(ellipse at 70% 30%, #b8860b 0%, #8b6508 40%, #5c4205 80%, #2f2102 100%);
+      box-shadow:
+        inset 3px 3px 10px rgba(0, 0, 0, 0.6),
+        inset -2px -2px 8px rgba(200, 180, 100, 0.1),
+        inset 0 0 20px rgba(50, 40, 0, 0.5);
+    }
+
+    #bottomleft.lit {
+      background:
+        radial-gradient(ellipse at 70% 30%, #ffd700 0%, #e6c200 40%, #b8980a 80%, #8b7308 100%);
+      box-shadow:
+        inset 3px 3px 10px rgba(0, 0, 0, 0.3),
+        inset -2px -2px 8px rgba(255, 255, 200, 0.3),
+        0 0 40px rgba(255, 215, 0, 0.6),
+        0 0 80px rgba(255, 215, 0, 0.3);
+    }
+
+    /* Azul - Inferior Direito */
+    #bottomright {
+      top: 50%;
+      left: 50%;
+      border-radius: 0 0 100% 0;
+      background:
+        radial-gradient(ellipse at 30% 30%, #1a1a5c 0%, #0d0d3d 40%, #050528 80%, #020215 100%);
+      box-shadow:
+        inset 3px 3px 10px rgba(0, 0, 0, 0.6),
+        inset -2px -2px 8px rgba(100, 100, 200, 0.1),
+        inset 0 0 20px rgba(0, 0, 50, 0.5);
+    }
+
+    #bottomright.lit {
+      background:
+        radial-gradient(ellipse at 30% 30%, #4e4eff 0%, #2e2ecc 40%, #1a1a99 80%, #0a0a66 100%);
+      box-shadow:
+        inset 3px 3px 10px rgba(0, 0, 0, 0.3),
+        inset -2px -2px 8px rgba(200, 200, 255, 0.3),
+        0 0 40px rgba(0, 0, 255, 0.6),
+        0 0 80px rgba(0, 0, 255, 0.3);
+    }
+
+    /* Error flash state */
+    .quadrant.error {
+      filter: brightness(0.3) saturate(0.5);
+    }
+
+    #title {
+      font-family: 'Press Start 2P', cursive;
+      position: absolute;
+      top: 25px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      line-height: 1.3;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .geek-code-title {
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: bold;
+      font-size: 10px;
+      color: #c0c0c0;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    .genius-title {
+      font-size: 22px;
+      color: #f5f5f5;
+      text-shadow:
+        0 0 2px rgba(255, 255, 255, 0.5),
+        1px 1px 0px #bbb,
+        2px 2px 0px #999,
+        3px 3px 0px #777,
+        4px 4px 5px rgba(0, 0, 0, 0.8);
+      letter-spacing: 3px;
+    }
+
+    #switches {
+      position: relative;
+      margin-top: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      z-index: 3;
+      gap: 12px;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    #switches * {
+      pointer-events: auto;
+    }
+
+    #switches label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    #switches label span {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 0.6em;
+      font-weight: bold;
+      margin-top: 6px;
+      color: #aaa;
+      text-align: center;
+      line-height: 1;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      letter-spacing: 1px;
+      pointer-events: none;
+    }
+
+    .toggle-button {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #4a1a1a 0%, #2a0a0a 50%, #3a1010 100%);
+      border: 3px solid #1a0505;
+      box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.6),
+        inset 0 2px 3px rgba(255, 100, 100, 0.1),
+        inset 0 -2px 3px rgba(0, 0, 0, 0.3);
+      pointer-events: auto;
+      position: relative;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .toggle-button::before {
+      content: '';
+      position: absolute;
+      top: 20%;
+      left: 25%;
+      width: 30%;
+      height: 20%;
+      background: linear-gradient(180deg, rgba(255, 150, 150, 0.3) 0%, transparent 100%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .toggle-button.power-on {
+      background: linear-gradient(145deg, #2a6a2a 0%, #1a4a1a 50%, #2a5a2a 100%);
+      border-color: #0a2a0a;
+      box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.6),
+        inset 0 2px 3px rgba(100, 255, 100, 0.2),
+        inset 0 -2px 3px rgba(0, 0, 0, 0.3),
+        0 0 15px rgba(0, 255, 0, 0.3);
+    }
+
+    .toggle-button.power-on::before {
+      background: linear-gradient(180deg, rgba(150, 255, 150, 0.4) 0%, transparent 100%);
+    }
+
+    .toggle-button.power-on::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      background: #4f4;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #4f4, 0 0 20px #4f4;
+      pointer-events: none;
+    }
+
+    .button#start {
+      height: 36px;
+      width: 80px;
+      border-radius: 5px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 0.8em;
+      font-weight: bold;
+      color: #666;
+      background: linear-gradient(180deg, #444 0%, #333 50%, #222 100%);
+      border: 2px solid #1a1a1a;
+      box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.5),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1),
+        inset 0 -1px 2px rgba(0,  0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0 5px;
+      line-height: 1;
+      transform: translateY(-8px);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .button#start:active {
+      transform: translateY(-6px);
+      box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .button#start.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Display LED realista */
+    #turn {
+      position: absolute;
+      background: linear-gradient(180deg, #1a0000 0%, #0a0000 50%, #150000 100%);
+      color: #ff0000;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 11px;
+      height: 28px;
+      width: 58px;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 12px;
+      text-align: center;
+      line-height: 28px;
+      border-radius: 4px;
+      border: 2px solid #0a0000;
+      box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.8),
+        inset 0 0 3px rgba(255, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+      z-index: 4;
+      text-shadow: 0 0 8px rgba(255, 0, 0, 0.8), 0 0 15px rgba(255, 0, 0, 0.5);
+      letter-spacing: 2px;
+      pointer-events: none;
+    }
+
+    #turn.off {
+      color: #330000;
+      text-shadow: none;
+    }
+
+    /* Etiqueta do fabricante */
+    #manufacturer-label {
+      position: absolute;
+      bottom: -35px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 8px;
+      color: #666;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    #scoreboard {
+      background: linear-gradient(160deg, #252525 0%, #1a1a1a 50%, #101010 100%);
+      border-radius: 12px;
+      padding: 20px 25px;
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.6),
+        inset 0 1px 2px rgba(255, 255, 255, 0.05),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+      font-family: 'Press Start 2P', cursive;
+      color: #00ff00;
+      width: 240px;
+      flex-shrink: 0;
+      border: 2px solid #0a0a0a;
+      align-self: center;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+      max-height: 480px;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    #scoreboard::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 10px;
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    #scoreboard h2 {
+      font-size: 0.85em;
+      margin-top: 0;
+      margin-bottom: 18px;
+      text-align: center;
+      color: #33ff33;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(50, 255, 50, 0.5);
+    }
+
+    #scoreboard ol {
+      padding-left: 0;
+      list-style-position: inside;
+      margin-bottom: 0;
+      font-size: 0.7em;
+    }
+
+    #scoreboard li {
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(0, 80, 0, 0.5);
+      padding-bottom: 8px;
+      text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    }
+
+    #scoreboard li:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    #scoreboard li.highlight {
+      color: #ffff00;
+      text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+    }
+
+    /* Efeito de scanlines no scoreboard */
+    #scoreboard::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.1) 2px,
+          rgba(0, 0, 0, 0.1) 4px);
+      pointer-events: none;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 800px) {
+      #game-container {
+        align-items: center;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      #game-wrapper {
+        transform: none;
+      }
+
+      #scoreboard {
+        width: 80%;
+        max-width: 300px;
+        margin-top: 0;
+        align-self: initial;
+        max-height: 200px;
+      }
+    }
+
+    @media (max-width: 540px) {
+      #game-wrapper {
+        transform: none;
+      }
+
+      #outer-circle {
+        border-width: 10px;
+        width: 85vw;
+        height: 85vw;
+        max-width: 400px;
+        max-height: 400px;
+      }
+
+      #outer-circle::before {
+        top: -15px;
+        left: -15px;
+        right: -15px;
+        bottom: -15px;
+      }
+
+      #inner-circle {
+        border-width: 6px;
+      }
+
+      .quadrant {
+        border-width: 4px;
+      }
+
+      .screw {
+        width: 10px;
+        height: 10px;
+      }
+
+      .screw::before {
+        width: 6px;
+        height: 1.5px;
+      }
+
+      #title {
+        top: 18px;
+      }
+
+      .geek-code-title {
+        font-size: 8px;
+        margin-bottom: 3px;
+      }
+
+      .genius-title {
+        font-size: 18px;
+      }
+
+      #switches {
+        /* no mobile, evita encavalar com o visor */
+        margin-top: 72px;
+        transform: scale(0.9);
+        gap: 10px;
+      }
+
+      #switches label span {
+        font-size: 0.52em;
+        margin-top: 3px;
+        white-space: nowrap;
+      }
+
+      .button#start {
+        font-size: 0.75em;
+        width: 70px;
+        height: 32px;
+      }
+
+      #turn {
+        bottom: 8px;
+        font-size: 9px;
+        width: 48px;
+        height: 24px;
+        line-height: 24px;
+      }
+
+      #manufacturer-label {
+        font-size: 6px;
+        bottom: -28px;
+      }
+
+      #scoreboard {
+        padding: 15px 20px;
+        max-height: 180px;
+      }
+
+      #scoreboard h2 {
+        font-size: 0.75em;
+        margin-bottom: 12px;
+      }
+
+      #scoreboard ol {
+        font-size: 0.65em;
+      }
+
+      #scoreboard li {
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      #game-wrapper {
+        transform: none;
+      }
+
+      #outer-circle {
+        width: 90vw;
+        height: 90vw;
+        border-width: 8px;
+      }
+
+      #outer-circle::before {
+        top: -12px;
+        left: -12px;
+        right: -12px;
+        bottom: -12px;
+      }
+
+      #inner-circle {
+        border-width: 5px;
+      }
+
+      .quadrant {
+        border-width: 3px;
+      }
+
+      .screw {
+        width: 8px;
+        height: 8px;
+      }
+
+      #title {
+        top: 14px;
+      }
+
+      .geek-code-title {
+        font-size: 7px;
+      }
+
+      .genius-title {
+        font-size: 16px;
+      }
+
+      #switches {
+        /* no mobile muito pequeno, sobe ainda mais */
+        margin-top: 62px;
+        transform: scale(0.85);
+      }
+
+      #turn {
+        bottom: 7px;
+        font-size: 8px;
+        width: 44px;
+        height: 20px;
+        line-height: 20px;
+      }
+
+      #manufacturer-label {
+        display: none;
+      }
+
+      #scoreboard {
+        width: 90%;
+        max-height: 150px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Container principal do jogo e placar -->
+  <div id="game-container">
+
+    <!-- Wrapper para efeito 3D -->
+    <div id="game-wrapper">
+      <!-- Círculo externo do jogo -->
+      <div id="outer-circle">
+        <!-- Parafusos decorativos -->
+        <div class="screw top"></div>
+        <div class="screw bottom"></div>
+        <div class="screw left"></div>
+        <div class="screw right"></div>
+
+        <!-- Quadrantes -->
+        <div class="quadrant" id="topleft" data-color="green" aria-label="Verde" role="button" tabindex="0"></div>
+        <div class="quadrant" id="topright" data-color="red" aria-label="Vermelho" role="button" tabindex="0"></div>
+        <div class="quadrant" id="bottomleft" data-color="yellow" aria-label="Amarelo" role="button" tabindex="0"></div>
+        <div class="quadrant" id="bottomright" data-color="blue" aria-label="Azul" role="button" tabindex="0"></div>
+
+        <!-- Círculo interno com controles -->
+        <div id="inner-circle">
+          <!-- Título do Jogo -->
+          <div id="title">
+            <div class="geek-code-title">[ 4U.IA.BR ]</div>
+            <div class="genius-title">GENIUS</div>
+          </div>
+          <!-- Controles: Power e Start -->
+          <div id="switches">
+            <label>
+              <div class="toggle-button" id="on" role="button" tabindex="0" aria-label="Power"></div>
+              <span>POWER</span>
+            </label>
+            <div class="button" id="start" role="button" tabindex="0" aria-label="Start">Start</div>
+          </div>
+          <!-- Contador de turnos -->
+          <div id="turn" class="off">--</div>
+        </div>
+
+        <!-- Etiqueta do fabricante -->
+        <div id="manufacturer-label">© 2026 4U.IA.BR</div>
+      </div>
+    </div>
+
+    <!-- Placar de High Scores -->
+    <div id="scoreboard">
+      <h2>High Scores</h2>
+      <ol id="score-list">
+        <li>#1: --</li>
+        <li>#2: --</li>
+        <li>#3: --</li>
+        <li>#4: --</li>
+        <li>#5: --</li>
+      </ol>
+    </div>
+
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // ========== GAME STATE ==========
+      var isOn = false;
+      var isPlaying = false;
+      var sequence = [];
+      var playerSequence = [];
+      var level = 0;
+      var canPlayerClick = false;
+      var audioContext = null;
+      var highScores = [];
+      var isShowingSequence = false;
+
+      // Player timeout (como no brinquedo original: se demorar demais, perde)
+      var playerTimeoutId = null;
+
+      // Element refs / compatibility helpers
+      var outerCircle = null;
+      var innerCircle = null;
+      var suppressClicksUntil = 0;
+
+      // ========== COLOR CONFIGURATION ==========
+      var colors = {
+        topleft: { name: 'green', frequency: 329.63 },
+        topright: { name: 'red', frequency: 261.63 },
+        bottomleft: { name: 'yellow', frequency: 220.00 },
+        bottomright: { name: 'blue', frequency: 164.81 }
+      };
+
+      var colorKeys = ['topleft', 'topright', 'bottomleft', 'bottomright'];
+
+      // ========== DOM ELEMENTS ==========
+      var powerBtn = null;
+      var startBtn = null;
+      var turnDisplay = null;
+      var scoreList = null;
+      var quadrantElements = {};
+
+      // ========== INITIALIZATION ==========
+      function init() {
+        powerBtn = document.getElementById('on');
+        startBtn = document.getElementById('start');
+        turnDisplay = document.getElementById('turn');
+        scoreList = document.getElementById('score-list');
+        outerCircle = document.getElementById('outer-circle');
+        innerCircle = document.getElementById('inner-circle');
+
+        for (var i = 0; i < colorKeys.length; i++) {
+          var key = colorKeys[i];
+          quadrantElements[key] = document.getElementById(key);
+        }
+
+        // Start inicialmente "desabilitado" até ligar o power
+        startBtn.classList.add('disabled');
+
+        loadHighScores();
+        updateScoreboard();
+        setupEventListeners();
+        updateDisplay();
+      }
+
+      // ========== AUDIO SYSTEM ==========
+      function initAudio() {
+        if (audioContext) {
+          if (audioContext.state === 'suspended') {
+            audioContext.resume();
+          }
+          return;
+        }
+
+        try {
+          var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            audioContext = new AudioContextClass();
+          }
+        } catch (e) {
+          console.log('Web Audio API not supported:', e);
+        }
+      }
+
+      // Timbre mais próximo do Genius/Simon: onda quadrada + filtro + leve saturação
+      var simonDistortionCurve = null;
+
+      function getSimonDistortionCurve() {
+        if (simonDistortionCurve) return simonDistortionCurve;
+        var amount = 35;
+        var n = 2048;
+        var curve = new Float32Array(n);
+        var deg = Math.PI / 180;
+        for (var i = 0; i < n; i++) {
+          var x = i * 2 / (n - 1) - 1;
+          curve[i] = (3 + amount) * x * 20 * deg / (Math.PI + amount * Math.abs(x));
+        }
+        simonDistortionCurve = curve;
+        return curve;
+      }
+
+      function playTone(frequency, duration) {
+        if (!audioContext) {
+          return;
+        }
+
+        try {
+          if (audioContext.state === 'suspended') {
+            audioContext.resume();
+          }
+
+          var now = audioContext.currentTime;
+          var oscillator = audioContext.createOscillator();
+          var filter = audioContext.createBiquadFilter();
+          var shaper = audioContext.createWaveShaper();
+          var gainNode = audioContext.createGain();
+
+          oscillator.type = 'square';
+          oscillator.frequency.setValueAtTime(frequency, now);
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(1400, now);
+          filter.Q.setValueAtTime(0.7, now);
+
+          shaper.curve = getSimonDistortionCurve();
+          shaper.oversample = '4x';
+
+          oscillator.connect(filter);
+          filter.connect(shaper);
+          shaper.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+
+          // Envelope (ataque rápido + decaimento)
+          gainNode.gain.setValueAtTime(0.0001, now);
+          gainNode.gain.linearRampToValueAtTime(0.32, now + 0.01);
+          gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+          oscillator.start(now);
+          oscillator.stop(now + duration + 0.05);
+        } catch (e) {
+          console.log('Error playing tone:', e);
+        }
+      }
+
+      function playErrorSound() {
+        if (!audioContext) {
+          return;
+        }
+
+        try {
+          if (audioContext.state === 'suspended') {
+            audioContext.resume();
+          }
+
+          var now = audioContext.currentTime;
+          var duration = 0.85;
+
+          var shaper = audioContext.createWaveShaper();
+          shaper.curve = getSimonDistortionCurve();
+          shaper.oversample = '4x';
+
+          var master = audioContext.createGain();
+          master.gain.setValueAtTime(0.0001, now);
+          master.gain.linearRampToValueAtTime(0.45, now + 0.02);
+          master.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+          shaper.connect(master);
+          master.connect(audioContext.destination);
+
+          // Buzz: osciladores + ruído filtrado
+          var mix = audioContext.createGain();
+          mix.gain.setValueAtTime(1, now);
+          mix.connect(shaper);
+
+          var osc1 = audioContext.createOscillator();
+          osc1.type = 'sawtooth';
+          osc1.frequency.setValueAtTime(120, now);
+          osc1.frequency.exponentialRampToValueAtTime(55, now + duration);
+
+          var osc2 = audioContext.createOscillator();
+          osc2.type = 'square';
+          osc2.frequency.setValueAtTime(55, now);
+
+          var og = audioContext.createGain();
+          og.gain.setValueAtTime(0.35, now);
+          osc1.connect(og);
+          osc2.connect(og);
+          og.connect(mix);
+
+          // Noise
+          var bufferSize = Math.max(1, Math.floor(audioContext.sampleRate * duration));
+          var noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+          var data = noiseBuffer.getChannelData(0);
+          for (var i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+
+          var noise = audioContext.createBufferSource();
+          noise.buffer = noiseBuffer;
+
+          var bp = audioContext.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.frequency.setValueAtTime(180, now);
+          bp.Q.setValueAtTime(0.8, now);
+
+          var ng = audioContext.createGain();
+          ng.gain.setValueAtTime(0.18, now);
+
+          noise.connect(bp);
+          bp.connect(ng);
+          ng.connect(mix);
+
+          osc1.start(now);
+          osc2.start(now);
+          noise.start(now);
+
+          osc1.stop(now + duration + 0.05);
+          osc2.stop(now + duration + 0.05);
+          noise.stop(now + duration + 0.05);
+        } catch (e) {
+          console.log('Error playing error sound:', e);
+        }
+      }
+
+      // ========== VISUAL EFFECTS ==========
+      function lightQuadrant(id) {
+        var el = quadrantElements[id];
+        if (el) {
+          el.classList.add('lit');
+        }
+      }
+
+      function unlightQuadrant(id) {
+        var el = quadrantElements[id];
+        if (el) {
+          el.classList.remove('lit');
+        }
+      }
+
+      function unlightAllQuadrants() {
+        for (var i = 0; i < colorKeys.length; i++) {
+          unlightQuadrant(colorKeys[i]);
+        }
+      }
+
+      function flashQuadrant(id, duration, callback) {
+        var colorInfo = colors[id];
+
+        lightQuadrant(id);
+        playTone(colorInfo.frequency, duration / 1000);
+
+        setTimeout(function() {
+          unlightQuadrant(id);
+          setTimeout(function() {
+            if (callback) callback();
+          }, 100);
+        }, duration);
+      }
+
+      function showErrorFlash(callback) {
+        for (var i = 0; i < colorKeys.length; i++) {
+          var el = quadrantElements[colorKeys[i]];
+          if (el) el.classList.add('error');
+        }
+
+        playErrorSound();
+
+        setTimeout(function() {
+          for (var i = 0; i < colorKeys.length; i++) {
+            var el = quadrantElements[colorKeys[i]];
+            if (el) el.classList.remove('error');
+          }
+          if (callback) callback();
+        }, 800);
+      }
+
+      // ========== DISPLAY UPDATE ==========
+      function updateDisplay() {
+        if (!isOn) {
+          turnDisplay.textContent = '--';
+          turnDisplay.classList.add('off');
+        } else {
+          turnDisplay.classList.remove('off');
+          if (level === 0) {
+            turnDisplay.textContent = '--';
+          } else {
+            turnDisplay.textContent = level < 10 ? '0' + level : String(level);
+          }
+        }
+      }
+
+      // ========== HIGH SCORES ==========
+      function loadHighScores() {
+        try {
+          var saved = localStorage.getItem('geniusHighScores');
+          if (saved) {
+            highScores = JSON.parse(saved);
+            if (!Array.isArray(highScores)) {
+              highScores = [];
+            }
+          } else {
+            highScores = [];
+          }
+        } catch (e) {
+          highScores = [];
+        }
+      }
+
+      function saveHighScores() {
+        try {
+          localStorage.setItem('geniusHighScores', JSON.stringify(highScores));
+        } catch (e) {
+          console.log('Could not save high scores');
+        }
+      }
+
+      function addScore(score) {
+        if (score <= 0) return;
+
+        highScores.push(score);
+        highScores.sort(function(a, b) { return b - a; });
+        highScores = highScores.slice(0, 5);
+        saveHighScores();
+        updateScoreboard();
+      }
+
+      function updateScoreboard() {
+        if (!scoreList) return;
+
+        scoreList.innerHTML = '';
+        for (var i = 0; i < 5; i++) {
+          var li = document.createElement('li');
+          var score = highScores[i];
+          var scoreText;
+          if (score !== undefined && score !== null) {
+            scoreText = score < 10 ? '0' + score : String(score);
+          } else {
+            scoreText = '--';
+          }
+          li.textContent = '#' + (i + 1) + ': ' + scoreText;
+          scoreList.appendChild(li);
+        }
+      }
+
+      // ========== GAME LOGIC ==========
+      function clearPlayerTimer() {
+        if (playerTimeoutId) {
+          clearTimeout(playerTimeoutId);
+          playerTimeoutId = null;
+        }
+      }
+
+      // Tempo limite por jogada: o Genius original não deixava o jogador “pensar pra sempre”.
+      // Referência prática: ~5s no começo, ficando mais rápido conforme o nível.
+      function getMoveTimeoutMs() {
+        var ms = 5200 - Math.max(0, (level - 1) * 180);
+        if (ms < 1700) ms = 1700;
+        return ms;
+      }
+
+      function armPlayerTimer() {
+        clearPlayerTimer();
+        if (!isOn || !isPlaying) return;
+        if (!canPlayerClick || isShowingSequence) return;
+
+        var ms = getMoveTimeoutMs();
+        playerTimeoutId = setTimeout(function() {
+          // Confere novamente o estado ao disparar
+          if (!isOn || !isPlaying) return;
+          if (!canPlayerClick || isShowingSequence) return;
+          gameOver('timeout');
+        }, ms);
+      }
+
+      function playSequence(index) {
+        if (index >= sequence.length) {
+          isShowingSequence = false;
+          canPlayerClick = true;
+          playerSequence = [];
+          armPlayerTimer();
+          return;
+        }
+
+        var id = sequence[index];
+        flashQuadrant(id, 400, function() {
+          playSequence(index + 1);
+        });
+      }
+
+      function startSequence() {
+        clearPlayerTimer();
+        isShowingSequence = true;
+        canPlayerClick = false;
+
+        setTimeout(function() {
+          playSequence(0);
+        }, 500);
+      }
+
+      function nextLevel() {
+        clearPlayerTimer();
+        level++;
+        updateDisplay();
+
+        var randomIndex = Math.floor(Math.random() * colorKeys.length);
+        var randomColor = colorKeys[randomIndex];
+        sequence.push(randomColor);
+
+        startSequence();
+      }
+
+      function checkPlayerInput() {
+        var currentIndex = playerSequence.length - 1;
+        var playerChoice = playerSequence[currentIndex];
+        var correctChoice = sequence[currentIndex];
+
+        if (playerChoice !== correctChoice) {
+          gameOver('wrong');
+          return;
+        }
+
+        if (playerSequence.length === sequence.length) {
+          clearPlayerTimer();
+          canPlayerClick = false;
+          setTimeout(function() {
+            nextLevel();
+          }, 1000);
+        }
+      }
+
+      function gameOver(reason) {
+        clearPlayerTimer();
+        canPlayerClick = false;
+        isPlaying = false;
+        isShowingSequence = false;
+
+        // Display estilo Simon/Genius quando erra
+        if (isOn && turnDisplay) {
+          turnDisplay.classList.remove('off');
+          turnDisplay.textContent = '!!';
+        }
+
+        showErrorFlash(function() {
+          var finalScore = level > 0 ? level - 1 : 0;
+          if (finalScore > 0) {
+            addScore(finalScore);
+          }
+
+          level = 0;
+          sequence = [];
+          playerSequence = [];
+          updateDisplay();
+        });
+      }
+
+      function resetGame() {
+        clearPlayerTimer();
+        isPlaying = false;
+        canPlayerClick = false;
+        isShowingSequence = false;
+        level = 0;
+        sequence = [];
+        playerSequence = [];
+        unlightAllQuadrants();
+        updateDisplay();
+      }
+
+      function startGame() {
+        if (!isOn || isPlaying) return;
+
+        clearPlayerTimer();
+        isPlaying = true;
+        level = 0;
+        sequence = [];
+        playerSequence = [];
+        canPlayerClick = false;
+
+        nextLevel();
+      }
+
+      // ========== EVENT HANDLERS ==========
+      function suppressSyntheticClick(e) {
+        if (!e) return false;
+        // Se um pointerdown já tratou a interação, ignore o click subsequente
+        if (e.type !== 'click') return false;
+        var now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        return now < suppressClicksUntil;
+      }
+
+      function armClickSuppression() {
+        var now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        suppressClicksUntil = now + 350;
+      }
+
+      function pointInRect(x, y, rect) {
+        return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+      }
+
+      function setupPointerRouter() {
+        // Roteia interações por coordenadas (funciona mesmo se algum navegador errar o hit-test por CSS/3D)
+        // Debug: coloque true para logar no console
+        var DEBUG_INPUT = false;
+
+        function routeByCoords(e) {
+          if (!outerCircle) return;
+
+          // Apenas botão primário no mouse
+          if (e.type === 'mousedown' && e.button !== 0) return;
+          if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+          var x = e.clientX;
+          var y = e.clientY;
+
+          if (typeof x !== 'number' || typeof y !== 'number') return;
+
+          if (DEBUG_INPUT) {
+            console.log('[' + e.type + ']', e.pointerType || 'mouse/touch', 'target=', e.target && (e.target.id || e.target.className));
+          }
+
+          var rect = outerCircle.getBoundingClientRect();
+          var cx = rect.left + rect.width / 2;
+          var cy = rect.top + rect.height / 2;
+
+          var dx = x - cx;
+          var dy = y - cy;
+
+          var r = rect.width / 2;
+          var dist2 = dx * dx + dy * dy;
+
+          // Fora do disco
+          if (dist2 > r * r) return;
+
+          // Evita scroll/zoom em mobile
+          if (e.cancelable) e.preventDefault();
+
+          // Área do círculo interno: só POWER / START
+          var innerR = r * 0.52; // inner-circle tem 52% do diâmetro
+          if (dist2 <= innerR * innerR) {
+            if (powerBtn) {
+              var pRect = powerBtn.getBoundingClientRect();
+              if (pointInRect(x, y, pRect)) {
+                if (DEBUG_INPUT) console.log('ROUTE => POWER');
+                armClickSuppression();
+                handlePowerClick(e);
+                return;
+              }
+            }
+
+            if (startBtn) {
+              var sRect = startBtn.getBoundingClientRect();
+              if (pointInRect(x, y, sRect)) {
+                if (DEBUG_INPUT) console.log('ROUTE => START');
+                armClickSuppression();
+                handleStartClick(e);
+                return;
+              }
+            }
+
+            return;
+          }
+
+          // Quadrantes
+          var key;
+          if (dy < 0 && dx < 0) key = 'topleft';
+          else if (dy < 0 && dx >= 0) key = 'topright';
+          else if (dy >= 0 && dx < 0) key = 'bottomleft';
+          else key = 'bottomright';
+
+          if (DEBUG_INPUT) console.log('ROUTE => QUADRANT', key);
+          armClickSuppression();
+          handleQuadrantClick(key, e);
+        }
+
+        // Preferencial: Pointer Events (evita duplicar com touch/click)
+        if (window.PointerEvent) {
+          document.addEventListener('pointerdown', routeByCoords, { capture: true, passive: false });
+        } else {
+          // Fallbacks (browsers antigos)
+          document.addEventListener('mousedown', routeByCoords, { capture: true, passive: false });
+          document.addEventListener('touchstart', function(e) {
+            // Normaliza touch para coordenadas
+            if (!e.touches || !e.touches[0]) return;
+            var t = e.touches[0];
+            routeByCoords({
+              type: 'touchstart',
+              clientX: t.clientX,
+              clientY: t.clientY,
+              target: e.target,
+              cancelable: e.cancelable,
+              preventDefault: function() { e.preventDefault(); },
+              pointerType: 'touch',
+              button: 0
+            });
+          }, { capture: true, passive: false });
+        }
+      }
+
+      function handlePowerClick(e) {
+        if (suppressSyntheticClick(e)) return;
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        initAudio();
+
+        isOn = !isOn;
+
+        if (isOn) {
+          powerBtn.classList.add('power-on');
+          startBtn.classList.remove('disabled');
+          loadHighScores();
+          updateScoreboard();
+        } else {
+          powerBtn.classList.remove('power-on');
+          startBtn.classList.add('disabled');
+          // segurança: garante que nenhum timeout fique pendurado
+          if (playerTimeoutId) {
+            clearTimeout(playerTimeoutId);
+            playerTimeoutId = null;
+          }
+          resetGame();
+        }
+
+        updateDisplay();
+      }
+
+      function handleStartClick(e) {
+        if (suppressSyntheticClick(e)) return;
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        if (!isOn) return;
+
+        initAudio();
+
+        if (!isPlaying) {
+          startGame();
+        }
+      }
+
+      function handleQuadrantClick(id, e) {
+        if (suppressSyntheticClick(e)) return;
+        if (e) {
+          e.preventDefault();
+        }
+
+        if (!isOn || !canPlayerClick || isShowingSequence) return;
+
+        initAudio();
+
+        var colorInfo = colors[id];
+
+        lightQuadrant(id);
+        playTone(colorInfo.frequency, 0.25);
+
+        setTimeout(function() {
+          unlightQuadrant(id);
+        }, 200);
+
+        playerSequence.push(id);
+
+        // Tempo para a próxima entrada do jogador
+        armPlayerTimer();
+
+        setTimeout(function() {
+          checkPlayerInput();
+        }, 250);
+      }
+
+      function setupEventListeners() {
+        // IMPORTANTE:
+        // Para evitar toque duplo (touch -> click sintético) e/ou roteamento duplicado no mobile,
+        // mantemos a interação principal via roteador global por coordenadas.
+        // Aqui deixamos apenas suporte de teclado/acessibilidade nos elementos.
+
+        // keyboard support: Power
+        powerBtn.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handlePowerClick(e);
+          }
+        }, false);
+
+        // keyboard support: Start
+        startBtn.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleStartClick(e);
+          }
+        }, false);
+
+        // keyboard support: Quadrantes
+        for (var i = 0; i < colorKeys.length; i++) {
+          (function(key) {
+            var el = quadrantElements[key];
+            if (!el) return;
+
+            el.addEventListener('keydown', function(e) {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleQuadrantClick(key, e);
+              }
+            }, false);
+
+            // Visual feedback on mouse
+            el.addEventListener('mousedown', function() {
+              if (isOn && canPlayerClick && !isShowingSequence) {
+                el.style.opacity = '0.9';
+              }
+            }, false);
+
+            el.addEventListener('mouseup', function() {
+              el.style.opacity = '';
+            }, false);
+
+            el.addEventListener('mouseleave', function() {
+              el.style.opacity = '';
+            }, false);
+          })(colorKeys[i]);
+        }
+
+        // Prevent context menu on long press
+        document.addEventListener('contextmenu', function(e) {
+          if (e.target.classList.contains('quadrant') ||
+            e.target.id === 'on' ||
+            e.target.id === 'start') {
+            e.preventDefault();
+          }
+        }, false);
+
+        // Compatibilidade: roteador por coordenadas (pega cliques mesmo quando o hit-test falha)
+        setupPointerRouter();
+      }
+
+      // ========== START ==========
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init, false);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+
+</html>
