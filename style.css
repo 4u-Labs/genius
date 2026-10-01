@@ -845,71 +845,72 @@ html, body {
         justify-content: center;
     }
 
-    /* Disco dimensionado proporcionalmente à altura da tela (100dvh) */
+    /* Disco dimensionado proporcionalmente à altura da tela (100dvh) - ampliado para maior conforto e beleza */
     #outer-circle {
-        width: min(84vw, 42dvh);
-        height: min(84vw, 42dvh);
-        border-width: 7px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.85);
+        width: min(90vw, 48dvh);
+        height: min(90vw, 48dvh);
+        border-width: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
     }
 
     #outer-circle::before {
-        top: -10px;
-        left: -10px;
-        right: -10px;
-        bottom: -10px;
+        top: -11px;
+        left: -11px;
+        right: -11px;
+        bottom: -11px;
     }
 
     .screw {
-        width: 8px;
-        height: 8px;
+        width: 9px;
+        height: 9px;
     }
 
     .screw::before {
-        width: 5px;
+        width: 6px;
         height: 1.5px;
     }
 
     #inner-circle {
-        border-width: 5px;
+        border-width: 6px;
     }
 
     #title {
-        top: 10px;
+        top: 14px;
     }
 
+    /* Reduzido sutilmente para acomodar perfeitamente sem extrapolar as bordas do console */
     .genius-title {
-        font-size: 14px;
-        letter-spacing: 2px;
+        font-size: 11px;
+        letter-spacing: 1.5px;
     }
 
     #switches {
-        margin-top: 10px;
-        gap: 10px;
+        margin-top: 12px;
+        gap: 12px;
     }
 
     .switch-label {
-        font-size: 7px;
+        font-size: 7.5px;
     }
 
     .toggle-button {
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
     }
 
     .button#start {
-        width: 58px;
-        height: 26px;
-        font-size: 8px;
+        width: 62px;
+        height: 28px;
+        font-size: 8.5px;
     }
 
-    /* Visor LED no mobile — livre e sem nenhuma sobreposição */
+    /* Visor LED no mobile — livre, nítido e sem nenhuma sobreposição */
     #turn {
-        bottom: 8px;
-        height: 20px;
-        width: 46px;
-        font-size: 9px;
-        line-height: 20px;
+        bottom: 10px;
+        height: 22px;
+        width: 50px;
+        font-size: 9.5px;
+        line-height: 22px;
     }
 
     /* Placar compacto em duas linhas horizontais no celular */
